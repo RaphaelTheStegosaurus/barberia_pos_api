@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 
 exports.login = async (req, res) => {
+  console.log("Petición de login recibida con cuerpo:", req.body);
   const { employee_id } = req.body; // En un sistema real usarías password también
 
   try {
