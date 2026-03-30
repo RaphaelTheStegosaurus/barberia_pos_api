@@ -92,3 +92,20 @@ exports.registerNewEmployee = async (req, res) => {
     conn.release();
   }
 };
+
+exports.listEmployees = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      `SELECT e.FIRST_NAMES, e.LAST_NAME, u.USERNAME, e.START_DATE 
+             FROM EMPLOYEES e
+             JOIN USERS u ON e.EMPLOYEE_ID = u.EMPLOYEE_ID`
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener la lista" });
+  }
+};

@@ -5,4 +5,5 @@ const authController = require("../controllers/authController");
 // Solo '/' o '/login' dependiendo de cómo quieras la URL
 router.post("/login", authController.login);
 router.post("/register", authController.registerNewEmployee);
+router.get("/list", authController.listEmployees);
 module.exports = router;
