@@ -50,12 +50,15 @@ exports.registerProduct = async (req, res) => {
   }
 };
 exports.updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+
   try {
-    const { id } = req.params;
-    await Product.update(id, req.body);
-    res.json({ success: true, message: "Actualizado correctamente" });
+    await Product.update(id, data);
+    res.json({ success: true, message: "Producto actualizado con éxito" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, error: "Error al actualizar" });
   }
 };
 exports.deleteProduct = async (req, res) => {
