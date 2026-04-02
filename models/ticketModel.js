@@ -27,11 +27,23 @@ const Ticket = {
           [detailId, folioId, item.product_id, item.quantity, item.unit_price]
         );
 
-        // Actualización de Stock (Solo si no es un servicio, podrías filtrar aquí)
-        await conn.execute(
-          "UPDATE INVENTORY SET STOCK = STOCK - ? WHERE PRODUCT_ID = ?",
-          [item.quantity, item.product_id]
+        // 2. Verificar la categoría antes de intentar actualizar stock
+        const [product] = await conn.execute(
+          "SELECT CATEGORY FROM PRODUCTS WHERE PRODUCT_ID = ?",
+          [item.product_id]
         );
+
+        // 3. Actualización de Stock SOLO si es PRODUCTO
+        if (product.length > 0 && product[0].CATEGORY === "PRODUCTO") {
+          await conn.execute(
+            "UPDATE INVENTORY SET STOCK = STOCK - ? WHERE PRODUCT_ID = ?",
+            [item.quantity, item.product_id]
+          );
+        } else {
+          console.log(
+            `El item ${item.product_id} es un SERVICIO, se omite resta de inventario.`
+          );
+        }
       }
 
       await conn.commit();
