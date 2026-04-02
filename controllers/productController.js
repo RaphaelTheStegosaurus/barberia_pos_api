@@ -19,7 +19,8 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.registerProduct = async (req, res) => {
-  const { name, price, category, stock } = req.body;
+  let { name, price, category, stock } = req.body;
+  const catUpper = category.toUpperCase();
 
   const validCategories = ["SERVICIO", "PRODUCTO"];
   if (!validCategories.includes(category.toUpperCase())) {
@@ -28,28 +29,23 @@ exports.registerProduct = async (req, res) => {
       .json({ error: "La categoría debe ser SERVICIO o PRODUCTO." });
   }
 
+  // Si es servicio, forzamos stock a null o 0 para la lógica de validación
+  if (catUpper === "SERVICIO") {
+    stock = 0;
+  } else if (parseInt(stock) < 0) {
+    return res
+      .status(400)
+      .json({ error: "El stock de un producto no puede ser negativo" });
+  }
+
   if (parseFloat(price) <= 0) {
     return res.status(400).json({ error: "El precio debe ser mayor a 0.00." });
   }
 
-  if (parseInt(stock) < 0) {
-    return res.status(400).json({ error: "El stock no puede ser negativo." });
-  }
-
   try {
-    const productId = await Product.create({
-      name,
-      price,
-      category: category.toUpperCase(),
-      stock,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Producto/Servicio registrado",
-      id: productId,
-    });
+    const id = await Product.create({ name, price, category: catUpper, stock });
+    res.status(201).json({ success: true, id });
   } catch (error) {
-    res.status(500).json({ error: "Error al registrar el producto." });
+    res.status(500).json({ error: error.message });
   }
 };
