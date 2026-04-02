@@ -43,6 +43,45 @@ const Product = {
     `);
     return rows;
   },
+  update: async (id, data) => {
+    const { name, price, category, stock } = data;
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // 1. Actualizar tabla principal
+      await conn.execute(
+        "UPDATE PRODUCTS SET NAME = ?, PRICE = ?, CATEGORY = ? WHERE PRODUCT_ID = ?",
+        [name, price, category, id]
+      );
+
+      // 2. Si es producto, actualizar su stock en INVENTORY
+      if (category === "PRODUCTO") {
+        await conn.execute(
+          "UPDATE INVENTORY SET STOCK = ? WHERE PRODUCT_ID = ?",
+          [stock, id]
+        );
+      }
+
+      await conn.commit();
+      return true;
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
+    }
+  },
+
+  delete: async (id) => {
+    // Al usar ON DELETE CASCADE en tu base de datos,
+    // borrar de PRODUCTS borrará automáticamente de INVENTORY y detalles.
+    const [result] = await db.execute(
+      "DELETE FROM PRODUCTS WHERE PRODUCT_ID = ?",
+      [id]
+    );
+    return result.affectedRows > 0;
+  },
 };
 
 module.exports = Product;

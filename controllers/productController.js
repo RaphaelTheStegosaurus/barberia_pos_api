@@ -49,3 +49,22 @@ exports.registerProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Product.update(id, req.body);
+    res.json({ success: true, message: "Actualizado correctamente" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Product.delete(id);
+    if (deleted) res.json({ success: true, message: "Eliminado" });
+    else res.status(404).json({ error: "No encontrado" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
