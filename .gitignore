@@ -1,0 +1,5 @@
+node_modules/
+notes/
+testApi/
+.log
+.env
