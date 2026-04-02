@@ -1,6 +1,12 @@
 const db = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
-
+const UPDATE_PRODUCT_QUERY = {
+  price: "UPDATE PRODUCTS SET PRICE = ? WHERE PRODUCT_ID = ?",
+  name: "UPDATE PRODUCTS SET NAME = ? WHERE PRODUCT_ID = ?",
+  category: "UPDATE PRODUCTS SET CATEGORY = ? WHERE PRODUCT_ID = ?",
+  stock: "UPDATE PRODUCTS SET STOCK=? WHERE PRODUCT_ID = ?",
+  all: "UPDATE PRODUCTS SET NAME = ?, PRICE = ?, CATEGORY = ?, STOCK=? WHERE PRODUCT_ID = ?",
+};
 const Product = {
   create: async (data) => {
     const { name, price, category, stock } = data;
@@ -45,14 +51,16 @@ const Product = {
   },
   update: async (id, data) => {
     const { name, price, category, stock } = data;
+    console.log(name == null);
+
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
 
       // 1. Actualizar tabla principal
       await conn.execute(
-        "UPDATE PRODUCTS SET NAME = ?, PRICE = ?, CATEGORY = ? WHERE PRODUCT_ID = ?",
-        [name, price, category, id]
+        "UPDATE PRODUCTS SET NAME = ?, PRICE = ?, CATEGORY = ?, STOCK=? WHERE PRODUCT_ID = ?",
+        [name, price, category, stock, id]
       );
 
       // 2. Si es producto, actualizar su stock en INVENTORY
