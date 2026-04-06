@@ -6,12 +6,12 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
-const { protect } = require("../middleware/authMiddleware");
+// const { protect } = require("../middleware/authMiddleware"); //DEPRECATED
 
 app.use(cors());
 app.use(express.json());
 // Prefijo para todas las rutas de productos
-router.post("/", protect, ticketController.createTicket);
+// router.post("/", protect, ticketController.createTicket); //DEPRECATED
 app.use("/api/products", productRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/auth", authRoutes);

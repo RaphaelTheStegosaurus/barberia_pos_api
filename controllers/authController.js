@@ -4,16 +4,13 @@ const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
-  console.log("Petición de login recibida con cuerpo:", req.body);
-  const { employee_id } = req.body; // En un sistema real usarías password también
-
+  const { username, password, connectionData } = req.body;
   try {
     const [rows] = await db.execute(
       `SELECT u.*, e.FIRST_NAMES 
-             FROM USERS u 
-             JOIN EMPLOYEES e ON u.EMPLOYEE_ID = e.EMPLOYEE_ID 
-             WHERE u.USERNAME = ?`,
+       FROM USERS u 
+       JOIN EMPLOYEES e ON u.EMPLOYEE_ID = e.EMPLOYEE_ID 
+       WHERE u.USERNAME = ?`,
       [username]
     );
 
@@ -22,18 +19,22 @@ exports.login = async (req, res) => {
     }
 
     const user = rows[0];
+
     const validPassword = await bcrypt.compare(password, user.PASSWORD);
     if (!validPassword) {
       return res
         .status(401)
         .json({ error: "Usuario o contraseña incorrectos" });
     }
-    const sessionId = uuidv4();
 
-    // Actualizamos el SESSION_ID en la base de datos (como en tu esquema)
+    //[ ] --- NUEVA LÓGICA DE SESSION_LOGS ---
+    const sessionId = uuidv4();
+    console.log(sessionId);
+
     await db.execute(
-      "UPDATE EMPLOYEES SET SESSION_ID = ? WHERE EMPLOYEE_ID = ?",
-      [sessionId, employee_id]
+      `INSERT INTO SESSION_LOGS (SESSION_ID, USER_ID, START_DATE, DATA_CONNECTION) 
+       VALUES (?, ?, NOW(), ?)`,
+      [sessionId, user.USER_ID, connectionData]
     );
 
     // Generamos un Token JWT que el Frontend guardará
@@ -44,12 +45,30 @@ exports.login = async (req, res) => {
     );
 
     res.json({
+      success: true,
       message: "Bienvenido " + user.FIRST_NAMES,
       token,
       employee_id: user.EMPLOYEE_ID,
+      username: user.USERNAME,
+      sessionId: sessionId,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+exports.logout = async (req, res) => {
+  const { sessionId } = req.body;
+  console.log(sessionId);
+
+  try {
+    await db.execute(
+      "UPDATE SESSION_LOGS SET END_DATE = NOW() WHERE SESSION_ID = ?",
+      [sessionId]
+    );
+    res.json({ success: true, message: "Sesión cerrada" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al cerrar sesión" });
   }
 };
 
