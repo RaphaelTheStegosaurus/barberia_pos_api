@@ -128,3 +128,32 @@ exports.listEmployees = async (req, res) => {
       .json({ success: false, error: "Error al obtener la lista" });
   }
 };
+exports.getOnlineStatus = async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        e.FIRST_NAMES, 
+        e.LAST_NAME, 
+        u.USERNAME,
+        s.START_DATE,
+        s.DATA_CONNECTION,
+        CASE 
+          WHEN s.END_DATE IS NULL AND s.START_DATE > DATE_SUB(NOW(), INTERVAL 8 HOUR) THEN 'ONLINE'
+          ELSE 'OFFLINE'
+        END AS STATUS
+      FROM EMPLOYEES e
+      JOIN USERS u ON e.EMPLOYEE_ID = u.EMPLOYEE_ID
+      LEFT JOIN SESSION_LOGS s ON u.USER_ID = s.USER_ID 
+      AND s.SESSION_ID = (
+          SELECT SESSION_ID FROM SESSION_LOGS 
+          WHERE USER_ID = u.USER_ID 
+          ORDER BY START_DATE DESC LIMIT 1
+      )
+    `);
+
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener estados" });
+  }
+};
