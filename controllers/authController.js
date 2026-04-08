@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const authModel = require("../models/authModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
@@ -6,19 +7,11 @@ const { v4: uuidv4 } = require("uuid");
 exports.login = async (req, res) => {
   const { username, password, connectionData } = req.body;
   try {
-    const [rows] = await db.execute(
-      `SELECT u.*, e.FIRST_NAMES 
-       FROM USERS u 
-       JOIN EMPLOYEES e ON u.EMPLOYEE_ID = e.EMPLOYEE_ID 
-       WHERE u.USERNAME = ?`,
-      [username]
-    );
+    const user = await authModel.findByUsername(username);
 
-    if (rows.length === 0) {
+    if (!user) {
       return res.status(401).json({ error: "Empleado no encontrado" });
     }
-
-    const user = rows[0];
 
     const validPassword = await bcrypt.compare(password, user.PASSWORD);
     if (!validPassword) {
@@ -26,18 +19,8 @@ exports.login = async (req, res) => {
         .status(401)
         .json({ error: "Usuario o contraseña incorrectos" });
     }
-
-    //[ ] --- NUEVA LÓGICA DE SESSION_LOGS ---
     const sessionId = uuidv4();
-    console.log(sessionId);
-
-    await db.execute(
-      `INSERT INTO SESSION_LOGS (SESSION_ID, USER_ID, START_DATE, DATA_CONNECTION) 
-       VALUES (?, ?, NOW(), ?)`,
-      [sessionId, user.USER_ID, connectionData]
-    );
-
-    // Generamos un Token JWT que el Frontend guardará
+    await authModel.createSessionLog(sessionId, user.USER_ID, connectionData);
     const token = jwt.sign(
       { id: user.EMPLOYEE_ID, username: user.USERNAME },
       process.env.JWT_SECRET || "secreto_temporal",

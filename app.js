@@ -6,6 +6,7 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
+const db = require("./config/db");
 // const { protect } = require("../middleware/authMiddleware"); //DEPRECATED
 
 app.use(cors());
