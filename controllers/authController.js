@@ -40,18 +40,12 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
 exports.logout = async (req, res) => {
   const { sessionId, source } = req.body;
-  const finalSource = source || "USER";
-
   try {
-    await db.execute(
-      `UPDATE SESSION_LOGS 
-       SET END_DATE = NOW(), CLOSE_SOURCE = ? 
-       WHERE SESSION_ID = ? AND END_DATE IS NULL`,
-      [finalSource, sessionId]
-    );
-    res.json({ success: true, message: `Sesión cerrada por ${finalSource}` });
+    await authModel.updateSessionLogout(sessionId, source || "USER");
+    res.json({ success: true, message: `Sesión cerrada por ${source}` });
   } catch (error) {
     res.status(500).json({ error: "Error al cerrar sesión" });
   }
