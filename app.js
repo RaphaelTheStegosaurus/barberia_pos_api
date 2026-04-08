@@ -20,3 +20,16 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor POS corriendo en http://localhost:${PORT}`);
 });
+
+// Limpieza de sesiones huérfanas
+setInterval(async () => {
+  console.log("REVISION");
+
+  await db.execute(`
+    UPDATE SESSION_LOGS 
+    SET END_DATE = DATE_ADD(START_DATE, INTERVAL 8 HOUR), 
+        CLOSE_SOURCE = 'API_EXPIRED' 
+    WHERE END_DATE IS NULL 
+    AND START_DATE < DATE_SUB(NOW(), INTERVAL 8 HOUR)
+  `);
+}, 1000 * 60 * 60); // Cada hora

@@ -58,15 +58,17 @@ exports.login = async (req, res) => {
   }
 };
 exports.logout = async (req, res) => {
-  const { sessionId } = req.body;
-  console.log(sessionId);
+  const { sessionId, source } = req.body;
+  const finalSource = source || "USER";
 
   try {
     await db.execute(
-      "UPDATE SESSION_LOGS SET END_DATE = NOW() WHERE SESSION_ID = ?",
-      [sessionId]
+      `UPDATE SESSION_LOGS 
+       SET END_DATE = NOW(), CLOSE_SOURCE = ? 
+       WHERE SESSION_ID = ? AND END_DATE IS NULL`,
+      [finalSource, sessionId]
     );
-    res.json({ success: true, message: "Sesión cerrada" });
+    res.json({ success: true, message: `Sesión cerrada por ${finalSource}` });
   } catch (error) {
     res.status(500).json({ error: "Error al cerrar sesión" });
   }
@@ -132,6 +134,7 @@ exports.getOnlineStatus = async (req, res) => {
   try {
     const [rows] = await db.execute(`
       SELECT 
+        s.SESSION_ID,
         e.FIRST_NAMES, 
         e.LAST_NAME, 
         u.USERNAME,
