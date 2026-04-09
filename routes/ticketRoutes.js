@@ -5,6 +5,7 @@ const { validateSale } = require("../middlewares/ticketValidator");
 const { protect } = require("../middlewares/authMiddleware");
 
 router.post("/checkout", protect, validateSale, ticketController.processSale);
+router.get("/history", protect, ticketController.listTickets);
 // router.get("/:id", ticketController.getTicketDetails);
 
 module.exports = router;
