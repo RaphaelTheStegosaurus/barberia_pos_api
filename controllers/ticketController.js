@@ -20,7 +20,8 @@ exports.processSale = async (req, res) => {
 
 exports.getTicketDetails = async (req, res) => {
   try {
-    const data = await Ticket.getById(req.params.id);
+    const { id } = req.params;
+    const details = await Ticket.getById(id);
     if (data.length === 0)
       return res.status(404).json({ message: "Ticket no encontrado" });
 
@@ -32,8 +33,6 @@ exports.getTicketDetails = async (req, res) => {
 exports.listTickets = async (req, res) => {
   try {
     const history = await Ticket.getAll();
-    // console.log(history);
-
     res.json({
       success: true,
       data: history,
