@@ -53,38 +53,32 @@ exports.logout = async (req, res) => {
 
 exports.registerNewEmployee = async (req, res) => {
   const { firstName, middleName, lastName, username, password } = req.body;
-
-  const employeeId = uuidv4();
-  const userId = uuidv4();
-
   const conn = await db.getConnection();
-
   try {
-    await conn.beginTransaction();
-    await conn.execute(
-      `INSERT INTO EMPLOYEES (EMPLOYEE_ID, FIRST_NAMES, MIDDLE_NAME, LAST_NAME, START_DATE) 
-             VALUES (?, ?, ?, ?, CURDATE())`,
-      [employeeId, firstName, middleName, lastName]
-    );
     const hashedPassword = await bcrypt.hash(password, 10);
-    await conn.execute(
-      `INSERT INTO USERS (USER_ID, USERNAME, PASSWORD, EMPLOYEE_ID) 
-             VALUES (?, ?, ?, ?)`,
-      [userId, username, hashedPassword, employeeId]
-    );
-
-    await conn.commit();
+    const employeeData = {
+      id: uuidv4(),
+      firstName,
+      middleName,
+      lastName,
+    };
+    const userData = {
+      id: uuidv4(),
+      username,
+      password: hashedPassword,
+    };
+    const result = await authModel.registerEmployee(employeeData, userData);
     res.status(201).json({
       success: true,
-      message: "Empleado y Usuario creados",
-      employeeId,
+      message: "Empleado y Usuario creados correctamente",
+      employeeId: result.employeeId,
     });
   } catch (error) {
     await conn.rollback();
-    console.error(error);
+    console.error("Error en registro:", error);
     res.status(500).json({
       success: false,
-      error: "Error al registrar. El usuario ya existe o faltan datos.",
+      error: "Error al registrar. Es posible que el usuario ya exista.",
     });
   } finally {
     conn.release();
