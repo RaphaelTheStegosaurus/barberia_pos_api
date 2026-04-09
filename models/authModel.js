@@ -1,6 +1,6 @@
 const db = require("../config/db");
 
-const AuthModel = {
+const authModel = {
   // Buscar usuario para login
   findByUsername: async (username) => {
     const [rows] = await db.execute(
@@ -98,4 +98,4 @@ const AuthModel = {
   },
 };
 
-module.exports = AuthModel;
+module.exports = authModel;

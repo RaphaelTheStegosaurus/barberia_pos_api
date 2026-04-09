@@ -1,4 +1,3 @@
-const db = require("../config/db");
 const authModel = require("../models/authModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -53,7 +52,6 @@ exports.logout = async (req, res) => {
 
 exports.registerNewEmployee = async (req, res) => {
   const { firstName, middleName, lastName, username, password } = req.body;
-  const conn = await db.getConnection();
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const employeeData = {
@@ -79,8 +77,6 @@ exports.registerNewEmployee = async (req, res) => {
       success: false,
       error: "Error al registrar. Es posible que el usuario ya exista.",
     });
-  } finally {
-    conn.release();
   }
 };
 

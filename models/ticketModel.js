@@ -5,45 +5,50 @@ const Ticket = {
   create: async (ticketData) => {
     const { employee_id, subtotal, tax, total, payment, items } = ticketData;
     const folioId = uuidv4();
-
     const conn = await db.getConnection();
 
     try {
       await conn.beginTransaction();
-
-      // 1. Insertar Cabecera del Ticket
       await conn.execute(
         "INSERT INTO TICKETS (FOLIO_ID, SUBTOTAL, TAX, TOTAL, PAYMENT, EMPLOYEE_ID) VALUES (?, ?, ?, ?, ?, ?)",
         [folioId, subtotal, tax, total, payment, employee_id]
       );
 
-      // 2. Insertar Detalles y Actualizar Inventario
       for (const item of items) {
         const detailId = uuidv4();
 
-        // Registro del detalle
         await conn.execute(
           "INSERT INTO TICKET_DETAILS (DETAIL_ID, FOLIO_ID, PRODUCT_ID, QUANTITY, UNIT_PRICE) VALUES (?, ?, ?, ?, ?)",
           [detailId, folioId, item.product_id, item.quantity, item.unit_price]
         );
 
-        // 2. Verificar la categoría antes de intentar actualizar stock
-        const [product] = await conn.execute(
-          "SELECT CATEGORY FROM PRODUCTS WHERE PRODUCT_ID = ?",
-          [item.product_id]
-        );
+        // Usamos la nueva función interna del modelo
+        const category = await Ticket.getProductCategory(conn, item.product_id);
 
-        // 3. Actualización de Stock SOLO si es PRODUCTO
-        if (product.length > 0 && product[0].CATEGORY === "PRODUCTO") {
+        if (category === "PRODUCTO") {
           await conn.execute(
             "UPDATE INVENTORY SET STOCK = STOCK - ? WHERE PRODUCT_ID = ?",
             [item.quantity, item.product_id]
           );
-        } else {
-          console.log(
-            `El item ${item.product_id} es un SERVICIO, se omite resta de inventario.`
-          );
         }
+
+        // // 2. Verificar la categoría antes de intentar actualizar stock
+        // const [product] = await conn.execute(
+        //   "SELECT CATEGORY FROM PRODUCTS WHERE PRODUCT_ID = ?",
+        //   [item.product_id]
+        // );
+
+        // // 3. Actualización de Stock SOLO si es PRODUCTO
+        // if (product.length > 0 && product[0].CATEGORY === "PRODUCTO") {
+        //   await conn.execute(
+        //     "UPDATE INVENTORY SET STOCK = STOCK - ? WHERE PRODUCT_ID = ?",
+        //     [item.quantity, item.product_id]
+        //   );
+        // } else {
+        //   console.log(
+        //     `El item ${item.product_id} es un SERVICIO, se omite resta de inventario.`
+        //   );
+        // }
       }
 
       await conn.commit();
@@ -57,7 +62,6 @@ const Ticket = {
   },
 
   getById: async (folioId) => {
-    // Obtenemos el ticket y sus detalles en una sola consulta con JOIN
     const [rows] = await db.execute(
       `SELECT t.*, td.product_id, td.quantity, td.unit_price, p.name 
              FROM TICKETS t
@@ -67,6 +71,24 @@ const Ticket = {
       [folioId]
     );
     return rows;
+  },
+
+  // Nueva función para que el validador consulte stock
+  checkProductStock: async (productId) => {
+    const [rows] = await db.execute(
+      "SELECT STOCK FROM INVENTORY WHERE PRODUCT_ID = ?",
+      [productId]
+    );
+    return rows.length > 0 ? rows[0].STOCK : null;
+  },
+
+  // Nueva función para verificar categoría (usada en el proceso de creación)
+  getProductCategory: async (conn, productId) => {
+    const [product] = await conn.execute(
+      "SELECT CATEGORY FROM PRODUCTS WHERE PRODUCT_ID = ?",
+      [productId]
+    );
+    return product.length > 0 ? product[0].CATEGORY : null;
   },
 };
 
