@@ -1,8 +1,7 @@
-const ticket = require("../models/ticketModel");
+const Ticket = require("../models/ticketModel");
 
 const validateSale = async (req, res, next) => {
   const { items } = req.body;
-
   if (!items || items.length === 0) {
     return res
       .status(400)
@@ -17,7 +16,7 @@ const validateSale = async (req, res, next) => {
     if (item.quantity <= 0) {
       return res.status(400).json({ error: "La cantidad debe ser mayor a 0." });
     }
-    const currentStock = await ticket.checkProductStock(item.product_id);
+    const currentStock = await Ticket.checkProductStock(item.product_id);
     if (currentStock !== null && currentStock < item.quantity) {
       return res.status(400).json({
         error: `Stock insuficiente. Disponible: ${currentStock}`,

@@ -73,7 +73,6 @@ const Ticket = {
     return rows;
   },
 
-  // Nueva función para que el validador consulte stock
   checkProductStock: async (productId) => {
     const [rows] = await db.execute(
       "SELECT STOCK FROM INVENTORY WHERE PRODUCT_ID = ?",
@@ -82,13 +81,27 @@ const Ticket = {
     return rows.length > 0 ? rows[0].STOCK : null;
   },
 
-  // Nueva función para verificar categoría (usada en el proceso de creación)
   getProductCategory: async (conn, productId) => {
     const [product] = await conn.execute(
       "SELECT CATEGORY FROM PRODUCTS WHERE PRODUCT_ID = ?",
       [productId]
     );
     return product.length > 0 ? product[0].CATEGORY : null;
+  },
+  // Obtener historial de todos los tickets
+  getAll: async () => {
+    const [rows] = await db.execute(`
+      SELECT 
+        t.FOLIO_ID, 
+        t.TOTAL, 
+        t.PAYMENT, 
+        t.SALE_DATE, 
+        e.FIRST_NAMES AS BARBERO
+      FROM TICKETS t
+      JOIN EMPLOYEES e ON t.EMPLOYEE_ID = e.EMPLOYEE_ID
+      ORDER BY t.SALE_DATE DESC
+    `);
+    return rows;
   },
 };
 

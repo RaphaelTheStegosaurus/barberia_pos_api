@@ -9,7 +9,7 @@ exports.processSale = async (req, res) => {
       folio: folio,
     });
   } catch (error) {
-    console.error("Error en venta:", error);
+    console.error("Error en controlador de venta:", error);
     res.status(500).json({
       success: false,
       message: "Hubo un error al procesar la venta",
