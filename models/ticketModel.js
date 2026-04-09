@@ -63,11 +63,18 @@ const Ticket = {
 
   getById: async (folioId) => {
     const [rows] = await db.execute(
-      `SELECT t.*, td.product_id, td.quantity, td.unit_price, p.name 
-             FROM TICKETS t
-             JOIN TICKET_DETAILS td ON t.FOLIO_ID = td.FOLIO_ID
-             JOIN PRODUCTS p ON td.PRODUCT_ID = p.PRODUCT_ID
-             WHERE t.FOLIO_ID = ?`,
+      `SELECT 
+        t.FOLIO_ID, 
+        t.TOTAL, 
+        t.DATE, 
+        td.QUANTITY, 
+        td.UNIT_PRICE, 
+        p.NAME AS PRODUCT_NAME,
+        p.CATEGORY
+     FROM TICKETS t
+     JOIN TICKET_DETAILS td ON t.FOLIO_ID = td.FOLIO_ID
+     JOIN PRODUCTS p ON td.PRODUCT_ID = p.PRODUCT_ID
+     WHERE t.FOLIO_ID = ?`,
       [folioId]
     );
     return rows;
@@ -88,7 +95,6 @@ const Ticket = {
     );
     return product.length > 0 ? product[0].CATEGORY : null;
   },
-  // Obtener historial de todos los tickets
   getAll: async () => {
     const [rows] = await db.execute(`
       SELECT 
