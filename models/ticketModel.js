@@ -65,8 +65,10 @@ const Ticket = {
     const [rows] = await db.execute(
       `SELECT 
         t.FOLIO_ID, 
+        t.SUBTOTAL, 
+        t.TAX, 
         t.TOTAL, 
-        t.DATE, 
+        t.DATE,
         td.QUANTITY, 
         td.UNIT_PRICE, 
         p.NAME AS PRODUCT_NAME,

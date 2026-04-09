@@ -17,7 +17,6 @@ exports.processSale = async (req, res) => {
     });
   }
 };
-
 exports.getTicketDetails = async (req, res) => {
   try {
     const { id } = req.params;
