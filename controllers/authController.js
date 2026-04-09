@@ -74,7 +74,6 @@ exports.registerNewEmployee = async (req, res) => {
       employeeId: result.employeeId,
     });
   } catch (error) {
-    await conn.rollback();
     console.error("Error en registro:", error);
     res.status(500).json({
       success: false,
@@ -87,18 +86,14 @@ exports.registerNewEmployee = async (req, res) => {
 
 exports.listEmployees = async (req, res) => {
   try {
-    const [rows] = await db.execute(
-      `SELECT e.FIRST_NAMES, e.LAST_NAME, u.USERNAME, e.START_DATE 
-             FROM EMPLOYEES e
-             JOIN USERS u ON e.EMPLOYEE_ID = u.EMPLOYEE_ID`
-    );
-
-    res.json({ success: true, data: rows });
+    const employees = await authModel.getAllEmployees();
+    res.json({ success: true, data: employees });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Error al obtener la lista" });
+    console.error("Error al listar:", error);
+    res.status(500).json({
+      success: false,
+      error: "No se pudo obtener la lista de empleados",
+    });
   }
 };
 
