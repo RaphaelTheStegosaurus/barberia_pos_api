@@ -22,10 +22,10 @@ exports.getTicketDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const details = await Ticket.getById(id);
-    if (data.length === 0)
+    if (details.length === 0) {
       return res.status(404).json({ message: "Ticket no encontrado" });
-
-    res.json(data);
+    }
+    res.json({ success: true, data: details });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
