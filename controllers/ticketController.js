@@ -29,3 +29,18 @@ exports.getTicketDetails = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.listTickets = async (req, res) => {
+  try {
+    const history = await Ticket.getAll();
+    res.json({
+      success: true,
+      data: history,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener el historial",
+      error: error.message,
+    });
+  }
+};
