@@ -32,6 +32,8 @@ exports.getTicketDetails = async (req, res) => {
 exports.listTickets = async (req, res) => {
   try {
     const history = await Ticket.getAll();
+    // console.log(history);
+
     res.json({
       success: true,
       data: history,

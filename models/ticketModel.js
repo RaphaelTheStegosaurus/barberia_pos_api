@@ -95,12 +95,12 @@ const Ticket = {
         t.FOLIO_ID, 
         t.TOTAL, 
         t.PAYMENT, 
-        t.SALE_DATE, 
+        t.DATE, 
         e.FIRST_NAMES AS BARBERO
-      FROM TICKETS t
-      JOIN EMPLOYEES e ON t.EMPLOYEE_ID = e.EMPLOYEE_ID
-      ORDER BY t.SALE_DATE DESC
-    `);
+          FROM TICKETS AS t
+          LEFT JOIN EMPLOYEES AS e ON t.EMPLOYEE_ID = e.EMPLOYEE_ID
+          ORDER BY t.DATE DESC;
+      `);
     return rows;
   },
 };
